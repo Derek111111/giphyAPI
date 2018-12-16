@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="assets/css/style.css">
+
+</head>
+
+<body>
+  
+  <div id="container">
+
+
+    <div class="row" id="topics-holder">
+    
+
+
+    </div>
+
+    <br>
+
+    <div id="row">
+
+      <div id="gif-container" class="col-lg-6">
+      
+        <div class="row">
+          <h1 id="topic-text">Dogs</h1>
+        </div>
+
+        <br>
+
+        <div class="row" id="gifs-holder">
+
+
+
+        </div>
+
+      
+      </div>
+
+      <div id="topic-creator" class="col-lg-6">
+      
+        <form>
+        
+          <label for="topic-input"><strong>Add New Topic</strong></label>
+          <input class="form-control" id="topic-input-form">
+          <button type="button" id="submit-topic" class="btn btn-primary">Confirm</button>
+        
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script type="text/javascript">
+
+    var subjects = ["Dogs","Cats","Worms"];
+    var subject = "Dogs";//interchangable anywhere
+
+    var queryURL = "https://api.giphy.com/v1/gifs/search?q=";//split in half to do limit and search
+    var apiKey = "&api_key=hmtyqpX6Xein8cIdmc6EIr8QgTuIi0Kg&limit=10";
+
+    function generateTopics(){
+
+      $("#topics-holder").empty();
+
+      for(var i = 0; i < subjects.length; i++){
+
+        var currSubj = subjects[i];
+        var newButton = $("<button type='button' class='btn btn-success'>")
+        newButton.attr("topic-value", currSubj);
+        newButton.text(currSubj);
+
+        $("#topics-holder").append(newButton);//adding new topics
+
+        //topic setter function
+        newButton.on("click",function(){
+
+          subject = $(this).attr("topic-value");
+          $("#topic-text").text(subject);
+
+          $.ajax({
+            url: queryURL + subject + apiKey,
+            method: "GET"
+          })
+
+          .then(function(data){
+            $("#gifs-holder").empty();
+            var gifArray = data.data;
+            console.log(gifArray);
+            for(var b=0; b< gifArray.length; b++){
+
+              var currGif = gifArray[b];
+              var newDiv = $("<div>")
+              var newHead = $("<h3>");
+              var gifUrl = currGif.images.original.url;
+              var pauseURL = currGif.images.original_still.url;
+              var randGif = $("<img>");
+
+              newHead.text("Rating: "+ currGif.rating);
+              randGif.attr("src", pauseURL);
+              randGif.attr("data-state","still");
+              randGif.attr("data-animate", gifUrl);
+              randGif.attr("data-still", pauseURL);
+              randGif.attr("alt", subject);//display subject if it doesnt load
+
+              newDiv.append(newHead);//adding items to the page
+              newDiv.append(randGif);
+
+              $("#gifs-holder").prepend(newDiv);
+
+              randGif.on("click",function(){//pausing gifs
+
+                var currState = $(this).attr("data-state");
+
+                if (currState === "still") {
+
+                  $(this).attr("src", $(this).attr("data-animate"));
+                  $(this).attr("data-state", "animate");
+                  console.log("not frozen");
+
+                } else {
+
+                  $(this).attr("src", $(this).attr("data-still"));
+                  $(this).attr("data-state", "still");
+                  console.log("frozen");
+
+                }
+
+              });
+
+            }
+            
+          });
+
+        });
+
+      }
+
+    }
+
+    $(document).ready(function(){//get everything ready on load
+
+      generateTopics();
+
+    });
+
+
+    $("#submit-topic").on("click",function(){
+
+      event.preventDefault();
+
+      var newTopic = $("#topic-input-form").val().trim();
+      
+      subjects.push(newTopic);
+      generateTopics();
+
+    });
+
+  </script>
+</body>
+
+</html>
